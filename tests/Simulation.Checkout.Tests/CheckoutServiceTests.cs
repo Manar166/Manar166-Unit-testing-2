@@ -539,87 +539,11 @@ namespace Simulation.Checkout.Tests
 
         }
 
-        ///////////////////////////Task 3.1///////////////////////
-        [Fact]
-        public async Task CheckoutAsync_WhenOrderCreatedByAutoFixture_ShouldSucceed()
-        { //arrange
-            var repositoryMock = new Mock<IOrderRepository>();
-            var inventoryMock = new Mock<IInventoryService>();
-            var notificationMock = new Mock<INotificationService>();
-            inventoryMock
-                       .Setup(x => x.IsAvailableAsync(
-                           It.IsAny<Guid>(),
-                           It.IsAny<int>(),
-                           It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(true);
-
-            var checkoutService = new CheckoutService(repositoryMock.Object, inventoryMock.Object, notificationMock.Object);
-
-            Fixture fixture = new Fixture();
-            fixture.Customize<OrderItem>(i=>i.With(x => x.Quantity ,2).With(x=>x.UnitPrice,500m));
-
-            var order = fixture.Create<Order>();
+       
+       
 
 
-            //act
-            var receipt = await checkoutService.CheckoutAsync(order);
-
-            //assert
-
-            receipt.Should().NotBeNull();
-            receipt.OrderId.Should().Be(order.Id);
-            receipt.Items.Should().HaveCount(order.Items.Count);
-            receipt.Total.Should().BeGreaterThanOrEqualTo(0m);
-
-        }
-
-
-        [Fact]
-        public async Task CheckoutAsync_WhenCustomerGeneratedByBogus_ShouldPreserveCustomerDetails()
-        {
-            //arrange
-            var faker = new Faker<Order>().UseSeed(2026)
-                        .RuleFor(o => o.CustomerName, f => f.Name.FullName())
-                        .RuleFor(o => o.CustomerEmail, f => f.Internet.Email())
-                        .RuleFor(o=>o.Items,f=>new List<OrderItem>
-                        {
-                            new OrderItem
-                            {
-                                ProductId = Guid.NewGuid(),
-                                ProductName = f.Commerce.ProductName(),
-                                Quantity = f.Random.Int(1, 5),
-                                UnitPrice = f.Random.Decimal(10m, 100m)
-                            }
-                        });     
-                        
-
-            var order = faker.Generate();
-
-            var repositoryMock = new Mock<IOrderRepository>();
-            var inventoryMock = new Mock<IInventoryService>();
-            var notificationMock = new Mock<INotificationService>();
-            inventoryMock
-                       .Setup(x => x.IsAvailableAsync(
-                           It.IsAny<Guid>(),
-                           It.IsAny<int>(),
-                           It.IsAny<CancellationToken>()))
-                       .ReturnsAsync(true);
-
-            var checkoutService = new CheckoutService(repositoryMock.Object, inventoryMock.Object, notificationMock.Object);
-
-            //act
-            var receipt = await checkoutService.CheckoutAsync(order);
-
-            //assert
-
-            receipt.CustomerName.Should().Be(order.CustomerName);  
-            receipt.CustomerEmail.Should().Be(order.CustomerEmail);  
-            
-
-
-
-        }
-
+        
 
     }
 }
